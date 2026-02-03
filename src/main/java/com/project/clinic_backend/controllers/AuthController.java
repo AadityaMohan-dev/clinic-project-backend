@@ -28,11 +28,18 @@ public class AuthController {
         return ResponseEntity.ok(authSvc.login(request));
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/signup/user")
     public ResponseEntity<SignupResponseDto> signup(
             @Valid @RequestBody SignupRequestDto request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(authSvc.signup(request));
     }
+//    @PostMapping("/signup/doctor")
+//    public ResponseEntity<SignupResponseDto> signupDoctor(
+//            @Valid @RequestBody SignupRequestDto request
+//    ) {
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(authSvc.signupDoctor(request));
+//    }
 }

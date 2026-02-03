@@ -1,6 +1,10 @@
 package com.project.clinic_backend.models.dtos;
 
-public record LoginResponseDto(
+import lombok.Builder;
 
+@Builder
+public record LoginResponseDto(
+    String jwt,
+    String userId
 ) {
 }
