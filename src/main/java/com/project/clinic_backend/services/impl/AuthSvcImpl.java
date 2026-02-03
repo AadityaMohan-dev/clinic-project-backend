@@ -4,10 +4,12 @@ import com.project.clinic_backend.models.dtos.LoginRequestDto;
 import com.project.clinic_backend.models.dtos.SignupRequestDto;
 import com.project.clinic_backend.models.dtos.LoginResponseDto;
 import com.project.clinic_backend.models.dtos.SignupResponseDto;
+import com.project.clinic_backend.models.entities.RefreshToken;
 import com.project.clinic_backend.models.entities.User;
 import com.project.clinic_backend.models.enums.UserRole;
 import com.project.clinic_backend.repositories.UserRepository;
 import com.project.clinic_backend.services.svc.AuthSvc;
+import com.project.clinic_backend.services.svc.RefreshTokenService;
 import com.project.clinic_backend.utils.AuthUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,29 +28,28 @@ public class AuthSvcImpl implements AuthSvc {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final AuthUtil authUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public LoginResponseDto login(LoginRequestDto request) {
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                )
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        String email = authentication.getName();
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        String token = authUtil.generateAccessToken(user);
+        String accessToken = authUtil.generateAccessToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         return LoginResponseDto.builder()
-                .jwt(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
                 .userId(user.getId().toString())
                 .build();
     }
+
 
     @Override
     public SignupResponseDto signup(SignupRequestDto request) {

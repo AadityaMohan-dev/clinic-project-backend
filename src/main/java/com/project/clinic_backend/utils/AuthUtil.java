@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class AuthUtil {
@@ -26,12 +27,16 @@ public class AuthUtil {
                 .subject(user.getEmail())
                 .claim("userId", user.getId().toString())
                 .claim("role", user.getRole().name())
-                .issuer("clinic-backend")
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
-                .signWith(getSecretKey(), Jwts.SIG.HS256)
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 min
+                .signWith(getSecretKey())
                 .compact();
     }
+
+    public String generateRefreshToken() {
+        return UUID.randomUUID().toString() + UUID.randomUUID();
+    }
+
 
     // VALIDATE TOKEN
     public Claims extractClaims(String token) {

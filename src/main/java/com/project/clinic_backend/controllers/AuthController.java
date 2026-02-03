@@ -1,10 +1,11 @@
 package com.project.clinic_backend.controllers;
 
-import com.project.clinic_backend.models.dtos.LoginRequestDto;
-import com.project.clinic_backend.models.dtos.LoginResponseDto;
-import com.project.clinic_backend.models.dtos.SignupRequestDto;
-import com.project.clinic_backend.models.dtos.SignupResponseDto;
+import com.project.clinic_backend.models.dtos.*;
+import com.project.clinic_backend.models.entities.RefreshToken;
+import com.project.clinic_backend.models.entities.User;
 import com.project.clinic_backend.services.svc.AuthSvc;
+import com.project.clinic_backend.services.svc.RefreshTokenService;
+import com.project.clinic_backend.utils.AuthUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthSvc authSvc;
+    private final AuthUtil authUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
@@ -42,4 +45,32 @@ public class AuthController {
 //        return ResponseEntity.status(HttpStatus.CREATED)
 //                .body(authSvc.signupDoctor(request));
 //    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponseDto> refresh(@RequestBody RefreshTokenRequestDto request) {
+
+        RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(request.refreshToken());
+
+        User user = refreshToken.getUser();
+        String newAccessToken = authUtil.generateAccessToken(user);
+
+        return ResponseEntity.ok(
+                LoginResponseDto.builder()
+                        .accessToken(newAccessToken)
+                        .refreshToken(refreshToken.getToken())
+                        .userId(user.getId().toString())
+                        .build()
+        );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody RefreshTokenRequestDto request) {
+
+        RefreshToken token = refreshTokenService.verifyRefreshToken(request.refreshToken());
+        refreshTokenService.revokeToken(token);
+
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
+
 }
