@@ -22,16 +22,8 @@ public class Patient {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
-
-    @Column(length = 255)
-    private String diagnosisName;
-
-    @Column(length = 500)
-    private String doctorSuggestion;
-
-    @Column(length = 1000)
-    private String keyNotesAboutPatient;
-
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Diagnosis> diagnoses;
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Prescription> prescriptions;
 

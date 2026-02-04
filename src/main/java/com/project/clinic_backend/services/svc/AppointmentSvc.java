@@ -2,7 +2,6 @@ package com.project.clinic_backend.services.svc;
 
 import com.project.clinic_backend.models.dtos.AppointmentBookingRequestDto;
 import com.project.clinic_backend.models.dtos.AppointmentResponseDto;
-import com.project.clinic_backend.models.dtos.UserAppointmentResponseDto;
 import com.project.clinic_backend.models.entities.User;
 import jakarta.validation.Valid;
 
