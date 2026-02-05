@@ -26,6 +26,8 @@ public record AppointmentResponseDto(
 
         String reasonForVisit,
 
+        String doctorName ,
+
         String additionalNotes,
 
         AppointmentType appointmentType,

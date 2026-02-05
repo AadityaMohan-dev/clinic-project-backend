@@ -32,6 +32,8 @@ public record AppointmentBookingRequestDto(
 
         String additionalNotes,
 
+        String doctorName,
+
         @NotNull(message = "Appointment type is required")
         AppointmentType appointmentType
 ) {}
