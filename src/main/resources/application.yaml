@@ -1,3 +1,25 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: clinic-backend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/clinic_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: supersecurejwtsecretkeymustbeatleast32characters
+  expiration: 86400000

@@ -65,9 +65,8 @@ public class AppointmentSvcImpl implements AppointmentSvc {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        Doctor doctor = doctorRepository.findByName(request.doctorName())
+        Doctor doctor = doctorRepository.findByUser_Name(request.doctorName())
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
-
         appointment.setDoctor(doctor);
         appointment.setAppointmentDate(request.appointmentDate());
         appointment.setAppointmentTime(request.appointmentTime());
@@ -96,9 +95,8 @@ public class AppointmentSvcImpl implements AppointmentSvc {
         Patient patient = patientRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Patient profile not found"));
 
-        Doctor doctor = doctorRepository.findByName(request.doctorName())
+        Doctor doctor = doctorRepository.findByUser_Name(request.doctorName())
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
-
         // Optional: prevent double booking
         boolean slotTaken = appointmentRepository.existsByDoctorAndAppointmentDateAndAppointmentTime(
                 doctor,
@@ -130,9 +128,8 @@ public class AppointmentSvcImpl implements AppointmentSvc {
     @Override
     public String createAppointmentByClinic(AppointmentBookingRequestDto request) {
 
-        Doctor doctor = doctorRepository.findByName(request.doctorName())
-                .orElseThrow(() -> new RuntimeException("Doctor Not found"));
-
+        Doctor doctor = doctorRepository.findByUser_Name(request.doctorName())
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
         Patient patient = patientRepository.findByUserEmail(request.email())
                 .orElseGet(() -> createPatient(request));
 

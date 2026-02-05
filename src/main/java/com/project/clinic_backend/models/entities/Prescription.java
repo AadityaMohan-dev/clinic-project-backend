@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 @Entity
 @Table(name = "prescriptions")
@@ -25,9 +26,6 @@ public class Prescription {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    @Column(nullable = false, length = 1000)
-    private String medicines;
-
     @Column(length = 1000)
     private String dosageInstructions;
 
@@ -35,6 +33,8 @@ public class Prescription {
     private String additionalNotes;
 
     private Instant createdAt;
+    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Medication> medications;
 
     @PrePersist
     protected void onCreate() {
