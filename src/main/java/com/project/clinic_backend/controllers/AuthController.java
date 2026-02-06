@@ -1,36 +1,30 @@
 package com.project.clinic_backend.controllers;
 
 import com.project.clinic_backend.models.dtos.*;
-import com.project.clinic_backend.models.entities.RefreshToken;
-import com.project.clinic_backend.models.entities.User;
 import com.project.clinic_backend.services.svc.AuthSvc;
 import com.project.clinic_backend.services.svc.RefreshTokenService;
 import com.project.clinic_backend.utils.AuthUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthSvc authSvc;
-    private final AuthUtil authUtil;
-    private final RefreshTokenService refreshTokenService;
+    // ... other dependencies ...
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(
-            @Valid @RequestBody LoginRequestDto request
-    ) {
-        return ResponseEntity.ok(authSvc.login(request));
-    }
+    // ... login endpoint ...
 
+    // 1. Existing Patient Signup
     @PostMapping("/signup/user")
     public ResponseEntity<SignupResponseDto> signup(
             @Valid @RequestBody SignupRequestDto request
@@ -38,39 +32,24 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(authSvc.signup(request));
     }
-//    @PostMapping("/signup/doctor")
-//    public ResponseEntity<SignupResponseDto> signupDoctor(
-//            @Valid @RequestBody SignupRequestDto request
-//    ) {
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(authSvc.signupDoctor(request));
-//    }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDto> refresh(@RequestBody RefreshTokenRequestDto request) {
-
-        RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(request.refreshToken());
-
-        User user = refreshToken.getUser();
-        String newAccessToken = authUtil.generateAccessToken(user);
-
-        return ResponseEntity.ok(
-                LoginResponseDto.builder()
-                        .accessToken(newAccessToken)
-                        .refreshToken(refreshToken.getToken())
-                        .userId(user.getId().toString())
-                        .build()
-        );
+    // 2. New Doctor Signup Endpoint
+    @PostMapping("/signup/doctor")
+    public ResponseEntity<SignupResponseDto> signupDoctor(
+            @Valid @RequestBody SignupRequestDto request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(authSvc.signupDoctor(request));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody RefreshTokenRequestDto request) {
-
-        RefreshToken token = refreshTokenService.verifyRefreshToken(request.refreshToken());
-        refreshTokenService.revokeToken(token);
-
-        return ResponseEntity.ok("Logged out successfully");
+    // 3. New Receptionist Signup Endpoint
+    @PostMapping("/signup/receptionist")
+    public ResponseEntity<SignupResponseDto> signupReceptionist(
+            @Valid @RequestBody SignupRequestDto request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(authSvc.signupReceptionist(request));
     }
 
-
+    // ... refresh, logout, validate endpoints ...
 }
