@@ -18,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,48 +34,53 @@ public class AuthSvcImpl implements AuthSvc {
     private final AuthUtil authUtil;
     private final RefreshTokenService refreshTokenService;
 
-    // ... login method remains the same ...
     @Override
     public LoginResponseDto login(LoginRequestDto request) {
-        // ... your existing login logic ...
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
+        try {
+            // 1. Authenticate using Spring Security Manager
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
+            );
 
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            // 2. If successful, get User details
+            User user = userRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new BadCredentialsException("User data not found"));
 
-        String accessToken = authUtil.generateAccessToken(user);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+            // 3. Generate Tokens
+            String accessToken = authUtil.generateAccessToken(user);
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
-                .tokenType("Bearer")
-                .expiresIn(authUtil.getAccessTokenExpiration())
-                .userId(user.getId().toString())
-                .build();
+            log.info("User {} logged in successfully", user.getEmail());
+
+            return LoginResponseDto.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken.getToken())
+                    .tokenType("Bearer")
+                    .expiresIn(authUtil.getAccessTokenExpiration())
+                    .userId(user.getId().toString())
+                    .build();
+
+        } catch (AuthenticationException e) {
+            log.error("Login failed for email: {} - {}", request.email(), e.getMessage());
+            throw new BadCredentialsException("Invalid email or password");
+        }
     }
 
-    // 1. PATIENT SIGNUP
     @Override
     public SignupResponseDto signup(SignupRequestDto request) {
         return registerUser(request, UserRole.PATIENT);
     }
 
-    // 2. DOCTOR SIGNUP
     @Override
     public SignupResponseDto signupDoctor(SignupRequestDto request) {
         return registerUser(request, UserRole.DOCTOR);
     }
 
-    // 3. RECEPTIONIST SIGNUP
     @Override
     public SignupResponseDto signupReceptionist(SignupRequestDto request) {
         return registerUser(request, UserRole.RECEPTIONIST);
     }
 
-    // PRIVATE HELPER METHOD TO AVOID DUPLICATION
     private SignupResponseDto registerUser(SignupRequestDto request, UserRole role) {
         if (userRepository.existsByEmail(request.email())) {
             throw new RuntimeException("Email already exists");
@@ -85,7 +91,7 @@ public class AuthSvcImpl implements AuthSvc {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .phoneNumber(request.phoneNumber())
-                .role(role) // Use the role passed as argument
+                .role(role)
                 .build();
 
         User savedUser = userRepository.save(user);
